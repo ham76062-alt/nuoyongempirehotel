@@ -1,4 +1,3 @@
 User-agent: *
 Allow: /
-
-Sitemap: https://www.ritzyhotelgh.com/sitemap.xml
+Sitemap: https://www.nuoyongempirehotel.example/sitemap.xml

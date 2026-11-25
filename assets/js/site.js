@@ -1,230 +1,193 @@
-
-/* ============ Ritzy Hotel — site scripts ============ */
-/* CENTRAL CONFIG — edit the numbers here and the whole site follows. */
-var RITZY = {
-  name: 'Ritzy Hotel',
-  whatsappNumber: '233204651919',          /* 020 465 1919 in international format (no +) */
-  whatsappDisplay: '020 465 1919',
-  phones: ['0204651919', '0595611944', '0273680002', '0273680003'],
-  email: 'info@ritzyhotelgh.com',
-  mapsUrl: 'https://www.google.com/maps/place/Ritzy+Hotel/@6.4223954,-2.7058805,848m/data=!3m2!1e3!4b1!4m6!3m5!1s0xfc4a159e36b4143:0x629ad00cf30612c1!8m2!3d6.4223954!4d-2.7058805',
-  facebookUrl: 'https://web.facebook.com/p/RITZY-HOTEL-61594269758020/'
+/* Nuoyong Empire Hotel — site behaviour.
+   ONE central config: change phone/email/address here and every
+   link, form and footer on the site follows. */
+const NUOYONG = {
+  name: "Nuoyong Empire Hotel",
+  phoneDisplay: "055 130 5021",
+  phoneAltDisplay: "050 222 6333",
+  phoneIntl: "233551305021",
+  phoneAltIntl: "233502226333",
+  whatsapp: "233551305021",
+  email: "nuoyongempirehotel2015@gmail.com",
+  address: "Mase Road 15, Sombo Residential Area, Wa, Upper West Region, Ghana",
+  mapsUrl: "https://www.google.com/maps/place/Nuoyong+Empire+Hotel/@10.05739,-2.51846,848m/data=!3m2!1e3!4b1!4m6!3m5!1s0xfd9e4b0f8f7d0a9:0x0000000000000000!8m2!3d10.05739!4d-2.51846",
+  mapsSearch: "https://www.google.com/maps/search/?api=1&query=Nuoyong+Empire+Hotel+Wa+Ghana",
+  googleReviews: "https://www.google.com/maps/search/?api=1&query=Nuoyong+Empire+Hotel+Wa+Ghana",
+  tripadvisor: "https://www.tripadvisor.com/Hotel_Review-g2123527-d12866703-Reviews-Nuoyong_Empire_Hotel-Wa_Upper_West_Region.html",
+  checkIn: "12:30 – 23:30",
+  checkOut: "12:00"
 };
 
-(function () {
-  'use strict';
-
-  /* ---- WhatsApp links (built from the one config above) ---- */
-  function waLink(message) {
-    var base = 'https://wa.me/' + RITZY.whatsappNumber;
-    return message ? base + '?text=' + encodeURIComponent(message) : base;
-  }
-  document.querySelectorAll('[data-wa]').forEach(function (el) {
-    el.setAttribute('href', waLink(el.getAttribute('data-wa-msg') || ''));
-  });
-
-  /* ---- Mobile menu ---- */
-  var toggle = document.querySelector('.nav-toggle');
-  var nav = document.querySelector('.main-nav');
+document.addEventListener("DOMContentLoaded", () => {
+  /* ---- Mobile nav ---- */
+  const toggle = document.querySelector(".nav-toggle");
+  const nav = document.querySelector(".main-nav");
   if (toggle && nav) {
-    toggle.addEventListener('click', function () {
-      var open = nav.classList.toggle('open');
-      toggle.classList.toggle('open', open);
-      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    toggle.addEventListener("click", () => {
+      const open = nav.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
     });
-    nav.querySelectorAll('a').forEach(function (a) {
-      a.addEventListener('click', function () {
-        nav.classList.remove('open');
-        toggle.classList.remove('open');
-      });
-    });
+    nav.querySelectorAll("a").forEach(a => a.addEventListener("click", () => nav.classList.remove("open")));
   }
 
   /* ---- Footer year ---- */
-  var yr = document.getElementById('year');
-  if (yr) { yr.textContent = new Date().getFullYear(); }
+  document.querySelectorAll("[data-year]").forEach(el => { el.textContent = new Date().getFullYear(); });
 
-  /* ---- Reveal on scroll ---- */
-  var revealEls = document.querySelectorAll('.reveal');
-  if ('IntersectionObserver' in window) {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-      });
-    }, { threshold: 0.12 });
-    revealEls.forEach(function (el) { io.observe(el); });
-  } else {
-    revealEls.forEach(function (el) { el.classList.add('in'); });
-  }
-
-  /* ---- Date minimums (no past dates) ---- */
-  var today = new Date().toISOString().split('T')[0];
-  document.querySelectorAll('input[type="date"]').forEach(function (inp) {
-    inp.setAttribute('min', today);
-  });
-
-  /* ---- Booking enquiry forms ---- */
-  function fmtDate(v) { return v || 'Not set'; }
-
-  function buildMessage(f) {
-    var lines = [
-      'Hello Ritzy Hotel, I would like to enquire about a stay.',
-      '',
-      'Name: ' + f.name.value.trim(),
-      'Phone: ' + f.phone.value.trim(),
-      'Email: ' + (f.email.value.trim() || 'Not given'),
-      'Check-in: ' + fmtDate(f.checkin.value),
-      'Check-out: ' + fmtDate(f.checkout.value),
-      'Guests: ' + f.guests.value,
-      'Rooms: ' + f.rooms.value,
-      'Preferred room: ' + f.room.value,
-      'Requests: ' + (f.requests.value.trim() || 'None')
-    ];
-    return lines.join('\n');
-  }
-
-  document.querySelectorAll('.booking-form').forEach(function (form) {
-    form.addEventListener('submit', function (ev) {
-      ev.preventDefault();
-      var err = form.querySelector('.form-error');
-      var f = {
-        name: form.querySelector('[name="name"]'),
-        phone: form.querySelector('[name="phone"]'),
-        email: form.querySelector('[name="email"]'),
-        checkin: form.querySelector('[name="checkin"]'),
-        checkout: form.querySelector('[name="checkout"]'),
-        guests: form.querySelector('[name="guests"]'),
-        rooms: form.querySelector('[name="rooms"]'),
-        room: form.querySelector('[name="room"]'),
-        requests: form.querySelector('[name="requests"]')
-      };
-      function fail(msg) {
-        err.textContent = msg;
-        err.classList.add('show');
-        err.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      err.classList.remove('show');
-      if (!f.name.value.trim()) { return fail('Please enter your full name.'); }
-      if (!f.phone.value.trim()) { return fail('Please enter your phone number so the hotel can reach you.'); }
-      if (!f.checkin.value) { return fail('Please choose a check-in date.'); }
-      if (!f.checkout.value) { return fail('Please choose a check-out date.'); }
-      if (f.checkout.value <= f.checkin.value) { return fail('Check-out must be after check-in.'); }
-      /* Open WhatsApp with the enquiry, then show the confirmation. */
-      window.open(waLink(buildMessage(f)), '_blank');
-      var fields = form.querySelector('.form-fields');
-      var ok = form.querySelector('.form-ok');
-      if (fields) { fields.style.display = 'none'; }
-      if (ok) { ok.classList.add('show'); ok.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-    });
-    var again = form.querySelector('[data-again]');
-    if (again) {
-      again.addEventListener('click', function () {
-        form.reset();
-        var fields = form.querySelector('.form-fields');
-        var ok = form.querySelector('.form-ok');
-        if (fields) { fields.style.display = ''; }
-        if (ok) { ok.classList.remove('show'); }
-      });
-    }
-  });
-
-  /* ---- Hero availability search -> feeds the booking form ---- */
-  var searchForm = document.querySelector('.hero-search');
-  if (searchForm) {
-    searchForm.addEventListener('submit', function (ev) {
-      ev.preventDefault();
-      var target = document.querySelector('#book');
-      if (!target) { return; }
-      var bookForm = target.querySelector('.booking-form') || document.querySelector('.booking-form');
-      if (bookForm) {
-        var map = { checkin: 'checkin', checkout: 'checkout', guests: 'guests', rooms: 'rooms' };
-        Object.keys(map).forEach(function (k) {
-          var src = searchForm.querySelector('[name="' + k + '"]');
-          var dst = bookForm.querySelector('[name="' + map[k] + '"]');
-          if (src && dst && src.value) { dst.value = src.value; }
+  /* ---- One authored moment: the garden photo develops to full colour ---- */
+  const moments = document.querySelectorAll(".develop");
+  if (moments.length) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
+      moments.forEach(m => m.classList.add("in"));
+    } else {
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
         });
-      }
-      target.scrollIntoView({ behavior: 'smooth' });
-      var nameField = bookForm && bookForm.querySelector('[name="name"]');
-      if (nameField) { setTimeout(function () { nameField.focus({ preventScroll: true }); }, 700); }
+      }, { threshold: 0.35 });
+      moments.forEach(m => io.observe(m));
+    }
+  }
+
+  /* ---- Gallery lightbox ---- */
+  const figures = Array.from(document.querySelectorAll(".masonry figure"));
+  const lb = document.querySelector(".lightbox");
+  if (figures.length && lb) {
+    const lbImg = lb.querySelector("img");
+    const lbCap = lb.querySelector(".lb-cap");
+    let idx = 0;
+    const show = i => {
+      idx = (i + figures.length) % figures.length;
+      const img = figures[idx].querySelector("img");
+      lbImg.src = img.src;
+      lbImg.alt = img.alt;
+      lbCap.textContent = figures[idx].querySelector("figcaption").textContent.trim();
+      lb.classList.add("open");
+      document.body.style.overflow = "hidden";
+    };
+    const close = () => { lb.classList.remove("open"); document.body.style.overflow = ""; };
+    figures.forEach((f, i) => f.addEventListener("click", () => show(i)));
+    lb.querySelector(".lb-close").addEventListener("click", close);
+    lb.querySelector(".lb-prev").addEventListener("click", e => { e.stopPropagation(); show(idx - 1); });
+    lb.querySelector(".lb-next").addEventListener("click", e => { e.stopPropagation(); show(idx + 1); });
+    lb.addEventListener("click", e => { if (e.target === lb) close(); });
+    document.addEventListener("keydown", e => {
+      if (!lb.classList.contains("open")) return;
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowLeft") show(idx - 1);
+      if (e.key === "ArrowRight") show(idx + 1);
     });
   }
 
-  /* ---- "Book This Room" buttons ---- */
-  document.querySelectorAll('[data-book-room]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var room = btn.getAttribute('data-book-room');
-      var target = document.querySelector('#book');
-      if (!target) { return; }
-      var bookForm = target.querySelector('.booking-form') || document.querySelector('.booking-form');
-      if (bookForm) {
-        var sel = bookForm.querySelector('[name="room"]');
-        if (sel) { sel.value = room; }
-      }
-      target.scrollIntoView({ behavior: 'smooth' });
+  /* ---- Gallery filter ---- */
+  document.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const cat = btn.dataset.filter;
+      document.querySelectorAll(".masonry figure").forEach(f => {
+        f.style.display = (cat === "all" || f.dataset.cat === cat) ? "" : "none";
+      });
     });
   });
 
   /* ---- Room detail thumbnails ---- */
-  var mainImg = document.querySelector('.room-detail .img-frame img');
-  document.querySelectorAll('.thumb-row img').forEach(function (thumb) {
-    thumb.addEventListener('click', function () {
-      if (!mainImg) { return; }
-      mainImg.src = thumb.getAttribute('data-full') || thumb.src;
-      mainImg.alt = thumb.alt;
-      document.querySelectorAll('.thumb-row img').forEach(function (t) { t.classList.remove('active'); });
-      thumb.classList.add('active');
+  document.querySelectorAll(".thumb-row img").forEach(t => {
+    t.addEventListener("click", () => {
+      const main = document.querySelector("#roomMain");
+      if (!main) return;
+      main.src = t.dataset.full || t.src;
+      main.alt = t.alt;
+      document.querySelectorAll(".thumb-row img").forEach(x => x.classList.remove("active"));
+      t.classList.add("active");
     });
   });
 
-  /* ---- Gallery filter + lightbox ---- */
-  var filterBtns = document.querySelectorAll('.filter-btn');
-  var items = document.querySelectorAll('.masonry figure');
-  filterBtns.forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      filterBtns.forEach(function (b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      var cat = btn.getAttribute('data-filter');
-      items.forEach(function (it) {
-        it.style.display = (cat === 'all' || it.getAttribute('data-cat') === cat) ? '' : 'none';
-      });
+  /* ---- Booking enquiry form -> WhatsApp ---- */
+  document.querySelectorAll(".booking-form").forEach(form => {
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const err = form.querySelector(".form-error");
+      const ok = form.querySelector(".form-ok");
+      const get = n => (form.querySelector('[name="' + n + '"]') || {}).value || "";
+      const name = get("name").trim();
+      const phone = get("phone").trim();
+      const checkIn = get("checkin");
+      const checkOut = get("checkout");
+      if (!name || !phone) {
+        err.textContent = "Please add your name and phone number so the hotel can reach you.";
+        err.classList.add("show");
+        return;
+      }
+      if (checkIn && checkOut && checkOut <= checkIn) {
+        err.textContent = "Check-out must be after check-in. Please pick your dates again.";
+        err.classList.add("show");
+        return;
+      }
+      err.classList.remove("show");
+      const lines = [
+        "Hello Nuoyong Empire Hotel, I would like to enquire about a stay.",
+        "Name: " + name,
+        "Phone: " + phone,
+        get("email") ? "Email: " + get("email").trim() : null,
+        checkIn ? "Check-in: " + checkIn : null,
+        checkOut ? "Check-out: " + checkOut : null,
+        get("guests") ? "Guests: " + get("guests") : null,
+        get("rooms") ? "Rooms: " + get("rooms") : null,
+        get("room") ? "Preferred room: " + get("room") : null,
+        get("requests") ? "Requests: " + get("requests").trim() : null,
+        "",
+        "Please let me know the rates and availability. Thank you."
+      ].filter(x => x !== null);
+      const url = "https://wa.me/" + NUOYONG.whatsapp + "?text=" + encodeURIComponent(lines.join("\n"));
+      const okPanel = form.querySelector(".form-ok");
+      if (okPanel) {
+        okPanel.innerHTML =
+          "<h3>Your enquiry is ready.</h3>" +
+          "<p>Your message has been prepared for WhatsApp. The hotel will confirm the rate and availability — this is an enquiry, not a confirmed reservation.</p>" +
+          "<p><a class='btn btn-primary' href='" + url + "' target='_blank' rel='noopener'>Open WhatsApp to send it</a></p>" +
+          "<p class='small'>If WhatsApp does not open, you can call the hotel on <a href='tel:+233551305021'>055 130 5021</a>.</p>";
+        okPanel.classList.add("show");
+        form.querySelector(".form-fields").style.display = "none";
+        form.querySelector(".form-submit-row").style.display = "none";
+        okPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      window.open(url, "_blank");
     });
   });
 
-  var lb = document.querySelector('.lightbox');
-  if (lb) {
-    var lbImg = lb.querySelector('img');
-    var lbCap = lb.querySelector('.lb-cap');
-    var figures = Array.prototype.slice.call(document.querySelectorAll('.masonry figure'));
-    var current = 0;
-    function visibleFigures() { return figures.filter(function (f) { return f.style.display !== 'none'; }); }
-    function show(i) {
-      var vis = visibleFigures();
-      if (!vis.length) { return; }
-      current = (i + vis.length) % vis.length;
-      var img = vis[current].querySelector('img');
-      lbImg.src = img.src;
-      lbImg.alt = img.alt;
-      lbCap.textContent = vis[current].querySelector('figcaption').textContent;
-      lb.classList.add('open');
-      document.body.style.overflow = 'hidden';
-    }
-    function close() { lb.classList.remove('open'); document.body.style.overflow = ''; }
-    figures.forEach(function (fig, i) {
-      fig.addEventListener('click', function () { show(i); });
+  /* ---- Hero search -> enquiry ---- */
+  document.querySelectorAll(".hero-search").forEach(hs => {
+    hs.addEventListener("submit", e => {
+      e.preventDefault();
+      const get = n => (hs.querySelector('[name="' + n + '"]') || {}).value || "";
+      const lines = [
+        "Hello Nuoyong Empire Hotel, I would like to enquire about a stay.",
+        get("checkin") ? "Check-in: " + get("checkin") : null,
+        get("checkout") ? "Check-out: " + get("checkout") : null,
+        get("guests") ? "Guests: " + get("guests") : null,
+        get("rooms") ? "Rooms: " + get("rooms") : null,
+        "",
+        "Please let me know the rates and availability. Thank you."
+      ].filter(x => x !== null);
+      window.open("https://wa.me/" + NUOYONG.whatsapp + "?text=" + encodeURIComponent(lines.join("\n")), "_blank");
     });
-    lb.querySelector('.lb-close').addEventListener('click', close);
-    lb.querySelector('.lb-prev').addEventListener('click', function (e) { e.stopPropagation(); show(current - 1); });
-    lb.querySelector('.lb-next').addEventListener('click', function (e) { e.stopPropagation(); show(current + 1); });
-    lb.addEventListener('click', function (e) { if (e.target === lb) { close(); } });
-    document.addEventListener('keydown', function (e) {
-      if (!lb.classList.contains('open')) { return; }
-      if (e.key === 'Escape') { close(); }
-      if (e.key === 'ArrowLeft') { show(current - 1); }
-      if (e.key === 'ArrowRight') { show(current + 1); }
+  });
+
+  /* ---- "Book this room" buttons -> enquiry ---- */
+  document.querySelectorAll("[data-book-room]").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.preventDefault();
+      const room = btn.dataset.bookRoom;
+      const lines = [
+        "Hello Nuoyong Empire Hotel, I would like to enquire about a stay.",
+        "Preferred room: " + room,
+        "",
+        "Please let me know the rates and availability. Thank you."
+      ];
+      window.open("https://wa.me/" + NUOYONG.whatsapp + "?text=" + encodeURIComponent(lines.join("\n")), "_blank");
     });
-  }
-})();
+  });
+});
 
 /* ---- Live preview expiry countdown (7 days) ---- */
 (function () {
@@ -241,7 +204,7 @@ var RITZY = {
   }
   syncHeaderOffset();
   window.addEventListener("resize", syncHeaderOffset);
-  /* Slim on scroll: keep the bar pinned, shrink all the text (nothing hidden). */
+  /* Slim on scroll: keep the bar pinned, collapse it to the countdown only. */
   var slim = false;
   function onScroll() {
     var shouldSlim = window.scrollY > 40;
